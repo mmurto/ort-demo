@@ -5,7 +5,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  ort:
+  ORT:
     runs-on: ubuntu-latest
     env:
       # Set env variables to store scan results in a Postgres database.
