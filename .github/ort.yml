@@ -1,0 +1,74 @@
+name: ORT
+
+on:
+  # Run the workflow on request.
+  workflow_dispatch:
+
+jobs:
+  ORT:
+    runs-on: ubuntu-latest
+    env:
+      # Set env variables to store scan results in a Postgres database.
+      # Make sure to set PG_HOST, PG_PORT, PG_USERNAME and PG_PASSWORD as 
+      # GitHub secrets for the repo.
+      PG_HOST: ${{ secrets.PG_HOST }}
+      PG_PORT: ${{ secrets.PG_PORT }}
+      PG_DB: ort
+      PG_SCHEMA: public
+      PG_USERNAME: ${{ secrets.PG_USERNAME }}
+      PG_PASSWORD: ${{ secrets.PG_PASSWORD }}
+
+    steps:
+      # Clone the repository.
+      - name: Clone the repository
+        uses: actions/checkout@v2
+        with:
+          path: repo
+
+      # Clone ORT Config.
+      - name: Clone ORT config
+        uses: actions/checkout@v2
+        with:
+          repository: mmurto/ort-config
+          path: config
+
+      # Analyze the repository with ORT.
+      - name: Analyze
+        uses: docker://mmurto/ort:latest
+        with:
+          args: -c /github/workspace/config/ort.conf analyze -i /github/workspace/repo -o analyzer
+
+      # Store the result if the step fails.
+      - name: Archive analyzer result (if fails)
+        if: failure()
+        uses: actions/upload-artifact@v2
+        with:
+          name: analyzer-output
+          path: analyzer/analyzer-result.yml
+
+      # Scan the dependencies in the analyzer result.
+      - name: Scan
+        uses: docker://mmurto/ort:latest
+        with:
+          args: -c /github/workspace/config/ort.conf scan -i /github/workspace/analyzer/analyzer-result.yml -o scanner
+
+      # Store the result if the step fails.
+      - name: Archive scan result (if fails)
+        if: failure()
+        uses: actions/upload-artifact@v2
+        with:
+          name: scanner-output
+          path: scanner/scan-result.yml
+
+      # Evaluate the scan result.
+      - name: Evaluate
+        uses: docker://mmurto/ort:latest
+        with:
+          args: -c /github/workspace/config/ort.conf evaluate -i /github/workspace/scanner/scan-result.yml -o evaluator
+
+      # Store the result.
+      - name: Archive evalator result
+        uses: actions/upload-artifact@v2
+        with:
+          name: evaluator-output
+          path: evaluator/evaluator-result.yml
