@@ -57,5 +57,5 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v2
         with:
-          name: evaluator-output
-          path: evaluator/evaluator-result.yml
+          name: evaluation-result
+          path: evaluator/evaluation-result.yml
