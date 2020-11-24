@@ -38,36 +38,23 @@ jobs:
         with:
           args: -c /github/workspace/config/ort.conf analyze -i /github/workspace/repo -o analyzer
 
-      # Store the result if the step fails.
-      - name: Archive analyzer result (if fails)
-        if: failure()
-        uses: actions/upload-artifact@v2
-        with:
-          name: analyzer-output
-          path: analyzer/analyzer-result.yml
-
       # Scan the dependencies in the analyzer result.
       - name: Scan
+        if: always()
         uses: docker://mmurto/ort:latest
         with:
           args: -c /github/workspace/config/ort.conf scan -i /github/workspace/analyzer/analyzer-result.yml -o scanner
 
-      # Store the result if the step fails.
-      - name: Archive scan result (if fails)
-        if: failure()
-        uses: actions/upload-artifact@v2
-        with:
-          name: scanner-output
-          path: scanner/scan-result.yml
-
       # Evaluate the scan result.
       - name: Evaluate
+        if: always()
         uses: docker://mmurto/ort:latest
         with:
-          args: -c /github/workspace/config/ort.conf evaluate -i /github/workspace/scanner/scan-result.yml -o evaluator
+          args: -c /github/workspace/config/ort.conf evaluate -i /github/workspace/scanner/scan-result.yml -o evaluator -r /github/workspace/config/rules.kts --license-configuration-file /github/workspace/config/license-classifications.yml
 
       # Store the result.
-      - name: Archive evalator result
+      - name: Archive evaluator result
+        if: always()
         uses: actions/upload-artifact@v2
         with:
           name: evaluator-output
