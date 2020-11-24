@@ -15,5 +15,9 @@
   },
   "dependencies": {
     "request": "^2.88.2"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mmurto/ort-demo.git"
   }
 }
