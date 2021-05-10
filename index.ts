@@ -1,3 +1,3 @@
-import { get } from "request";
+import got from 'got';
 
-get("https://google.com");
+got("https://google.com");
